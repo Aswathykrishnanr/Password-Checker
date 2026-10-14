@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Password Strength Checker</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --card: #1a2332;
+      --text: #e8eef5;
+      --muted: #8b9bb4;
+      --border: #2a3a4f;
+      --red: #e85d4c;
+      --orange: #e8a54c;
+      --green: #3dcc8a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(ellipse at top, #1a2838 0%, var(--bg) 55%);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      width: min(440px, 100%);
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.35rem;
+      font-weight: 650;
+    }
+
+    .subtitle {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .field {
+      display: flex;
+      gap: 8px;
+    }
+
+    input[type="password"],
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #121a24;
+      color: var(--text);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #4d7cff;
+    }
+
+    button.toggle {
+      flex-shrink: 0;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #121a24;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    button.toggle:hover,
+    button.generate:hover {
+      background: #1c2735;
+    }
+
+    button.generate {
+      width: 100%;
+      margin-top: 10px;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #121a24;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .bar-track {
+      height: 8px;
+      background: #121a24;
+      border-radius: 999px;
+      margin: 16px 0 8px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      transition: width 0.2s ease, background-color 0.2s ease;
+    }
+
+    .bar-fill.weak { background: var(--red); }
+    .bar-fill.medium { background: var(--orange); }
+    .bar-fill.strong { background: var(--green); }
+
+    .status {
+      min-height: 1.25em;
+      font-size: 0.85rem;
+      margin-bottom: 18px;
+      color: var(--muted);
+    }
+
+    .status.weak { color: var(--red); }
+    .status.medium { color: var(--orange); }
+    .status.strong { color: var(--green); }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 10px;
+    }
+
+    li {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    li.met {
+      color: var(--green);
+    }
+
+    .mark {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      display: grid;
+      place-items: center;
+      font-size: 0.7rem;
+      flex-shrink: 0;
+    }
+
+    li.met .mark {
+      border-color: var(--green);
+      background: rgba(61, 204, 138, 0.15);
+    }
+
+    .note {
+      margin: 18px 0 0;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Password strength checker</h1>
+    <p class="subtitle">Checked locally in your browser. Nothing is saved or sent.</p>
+
+    <label for="password">Password</label>
+    <div class="field">
+      <input id="password" type="password" autocomplete="new-password" spellcheck="false">
+      <button type="button" class="toggle" id="toggle" aria-pressed="false">Show</button>
+    </div>
+    <button type="button" class="generate" id="generate">Generate strong password</button>
+
+    <div class="bar-track" aria-hidden="true">
+      <div class="bar-fill" id="bar"></div>
+    </div>
+    <div class="status" id="status">Start typing to check strength.</div>
+
+    <ul>
+      <li id="rule-length"><span class="mark">–</span> At least 12 characters</li>
+      <li id="rule-upper"><span class="mark">–</span> An uppercase letter</li>
+      <li id="rule-lower"><span class="mark">–</span> A lowercase letter</li>
+      <li id="rule-number"><span class="mark">–</span> A number</li>
+      <li id="rule-symbol"><span class="mark">–</span> A symbol</li>
+    </ul>
+
+    <p class="note">This page never stores or transmits your password.</p>
+  </main>
+
+  <script>
+    const input = document.getElementById("password");
+    const toggle = document.getElementById("toggle");
+    const generate = document.getElementById("generate");
+    const bar = document.getElementById("bar");
+    const status = document.getElementById("status");
+
+    const UPPER = "ABCDEFGHJKLMNPQRSTUVWXYZ";
+    const LOWER = "abcdefghijkmnopqrstuvwxyz";
+    const DIGITS = "23456789";
+    const SYMBOLS = "!@#$%^&*()-_=+[]{}";
+    const ALL = UPPER + LOWER + DIGITS + SYMBOLS;
+
+    function randomIndex(max) {
+      const buffer = new Uint32Array(1);
+      crypto.getRandomValues(buffer);
+      return buffer[0] % max;
+    }
+
+    function pick(charset) {
+      return charset[randomIndex(charset.length)];
+    }
+
+    function shuffle(chars) {
+      for (let i = chars.length - 1; i > 0; i -= 1) {
+        const j = randomIndex(i + 1);
+        [chars[i], chars[j]] = [chars[j], chars[i]];
+      }
+      return chars;
+    }
+
+    function generatePassword() {
+      const length = 16;
+      const chars = [
+        pick(UPPER),
+        pick(LOWER),
+        pick(DIGITS),
+        pick(SYMBOLS)
+      ];
+      while (chars.length < length) {
+        chars.push(pick(ALL));
+      }
+      return shuffle(chars).join("");
+    }
+
+    const rules = [
+      { id: "rule-length", test: (value) => value.length >= 12 },
+      { id: "rule-upper", test: (value) => /[A-Z]/.test(value) },
+      { id: "rule-lower", test: (value) => /[a-z]/.test(value) },
+      { id: "rule-number", test: (value) => /[0-9]/.test(value) },
+      { id: "rule-symbol", test: (value) => /[^A-Za-z0-9]/.test(value) }
+    ];
+
+    function update() {
+      const value = input.value;
+      let met = 0;
+
+      for (const rule of rules) {
+        const ok = rule.test(value);
+        const item = document.getElementById(rule.id);
+        item.classList.toggle("met", ok);
+        item.querySelector(".mark").textContent = ok ? "✓" : "–";
+        if (ok) met += 1;
+      }
+
+      bar.classList.remove("weak", "medium", "strong");
+      status.classList.remove("weak", "medium", "strong");
+
+      if (!value) {
+        bar.style.width = "0%";
+        status.textContent = "Start typing to check strength.";
+        return;
+      }
+
+      if (met <= 2) {
+        bar.style.width = "33%";
+        bar.classList.add("weak");
+        status.classList.add("weak");
+        status.textContent = "Weak";
+      } else if (met <= 4) {
+        bar.style.width = "66%";
+        bar.classList.add("medium");
+        status.classList.add("medium");
+        status.textContent = "Medium";
+      } else {
+        bar.style.width = "100%";
+        bar.classList.add("strong");
+        status.classList.add("strong");
+        status.textContent = "Strong";
+      }
+    }
+
+    function setVisible(showing) {
+      input.type = showing ? "text" : "password";
+      toggle.textContent = showing ? "Hide" : "Show";
+      toggle.setAttribute("aria-pressed", String(showing));
+    }
+
+    toggle.addEventListener("click", () => {
+      setVisible(input.type !== "text");
+    });
+
+    generate.addEventListener("click", () => {
+      input.value = generatePassword();
+      setVisible(true);
+      update();
+    });
+
+    input.addEventListener("input", update);
+    update();
+  </script>
+</body>
+</html>
